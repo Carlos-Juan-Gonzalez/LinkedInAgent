@@ -89,6 +89,7 @@ def _get_actual_series_id():
     response = STATE_COLLECTION.find_one()
     if response is None:
         return "No actual serie"
+    
     return response.get("actual_serie", "")   
 
 @tool

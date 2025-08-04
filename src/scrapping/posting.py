@@ -15,5 +15,5 @@ async def create_post(post: str):
             print("Failed trying to reach the main page")
         await page.locator("#navigation-create-post-Crear-una-publicaci-n").click()
         await page.fill(".ql-editor", post)
-        input()
-        await page.locator("button:has-text('Publicar')").click()
+        input("Presiona Enter para continuar (después de revisar el post)...")
+        await page.locator('button[id*="ember"]:has-text("Publicar")').click()

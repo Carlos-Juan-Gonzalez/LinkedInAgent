@@ -1,6 +1,7 @@
 from ddgs import DDGS
 from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import tool
+from src.models import ResearchResponseSchema
 
 @tool
 def web_search(query: str) -> str:
@@ -23,7 +24,8 @@ def get_research_agent(model,prompt_query):
     research_agent = create_react_agent(
         model=model,
         tools=[web_search],
-        prompt=prompt_query
+        prompt=prompt_query,
+        response_format=("structured information to be later used for and LLM",ResearchResponseSchema)
     )
     return research_agent
 

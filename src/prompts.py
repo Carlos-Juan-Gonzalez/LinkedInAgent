@@ -2,26 +2,30 @@ class ModelPrompts:
     
 
     TOPIC_PROMPT = """
-              - You are an IT expert. Your task is to select a topic focused on a specific programming language, library, or technology, ensuring it aligns with the intended direction of the series and its conceptual continuity.
-              - The Feedback is NOT a post. It is the **definition or goal of the entire series**, and should be treated as a static reference.
-              - Always use the tool `get_actual_series_id()` to check if there is and ongoing series.
-              - If there is and ongoing series use the tool `get_series_posts_by_id(series_id: str)` to retrieve the list of all posts in the series, if the list is empty assume there is no posts yet.
-              - If there is and ongoing series use the tool `get_series_topic(series_id: str)` to retrieve the main topic of the series.
-              - Use the number of posts retrieved to determine the current post's position:
-                  - If no previous posts exist, this post is **Initial**.
-                  - If at least one post exists, this post is **Middle**.
-                  - Only mark it as **Final** if the topic clearly aims to conclude the series.
-              - Do not treat the Feedback as a previous post.
+              - You are an expert in software development and technical content creation. Your task is to define the most suitable and highly specific topic for a new post, ensuring it aligns with the broader purpose and conceptual continuity of the series.
 
-              Determine the appropriate topic for the current post based on:
-                If there is a series:
-                - The main topic of the series to determine a subtopic, using `get_series_topic(series_id: str)`
-                - The list of previous posts, using `get_series_posts_by_id(series_id: str)`.
-                If there is not a series:
-                - The list of programing languages or tecnologys known by the author of the post, using `get_programing_knowledge()`
+              - The Feedback is NOT a post. It is the long-term objective or general theme of the entire series. Treat it as a static reference that guides topic selection across multiple posts.
 
-              Only respond with the following JSON format, and **nothing else**:
-              { "topic": "The selected topic: a more specific subtopic", "position": "Initial/Middle/Final/StandAlone" }
+              - Always use the tool `get_actual_series_id()` to determine if there is an ongoing series.
+
+              - If there is a current series:
+                  - Use `get_series_topic(series_id: str)` to retrieve the main topic of the series.
+                  - Use `get_series_posts_by_id(series_id: str)` to examine previously covered topics. If the list is empty, assume this is the first post.
+                  - Use the number and content of previous posts to determine this post's position:
+                      - No previous posts → **Initial**
+                      - One or more previous posts → **Middle**
+                      - If the post clearly aims to conclude the topic → **Final**
+
+              - If there is no ongoing series:
+                  - The position will be **StandAlone**
+                  - Use the tool `get_programing_knowledge()` to assess the author's technical background and relevant skills.
+                  - Select a topic that is focused, valuable, and aligned with that background.
+
+              - The topic must always be **concrete and precise**, not broad or generic. Go deep into a specific aspect of the chosen technology, language, or library. For example:
+                  - Bad: "LangChain"
+                  - Good: "Creation of ReAct agents with LangChain using OpenAI models"
+
+              - Maintain a tone appropriate for a technically informed audience, prioritizing clarity and relevance.
               """ 
     
     USER_TOPIC = "Give me a topic, make sure it matches the series topic if there is one."
@@ -36,10 +40,8 @@ class ModelPrompts:
                 - Summarize the findings clearly, combining sources when necessary and avoiding redundancy.
                 - Avoid personal opinions or speculation. Focus on facts, definitions, and current implementations or trends.
 
-              Topic: {topic}
-
-              Only respond with the following JSON format, and **nothing else**:
-              """ + '{ "info": "All the researched content must be embedded here as a single escaped string."}'
+                Topic: {topic}
+              """
     
     USER_INITIAL_RESEARCH = "Search info about the topic"
 
@@ -93,8 +95,7 @@ class ModelPrompts:
                 - Best post : {best_post}
                 - Worst post: {worst_post}
 
-                Your response must follow this exact JSON format:
-                """ + '{ "approved": "True" or "False", "feedback": "**why**" }'
+                """
     
     @staticmethod
     def user_editor( post: str) -> str:
@@ -127,6 +128,7 @@ class ModelPrompts:
                                 - If continuing with stand-alone posts, just call `hold_next_series()`.
 
                                 - Your execution must be strategic, aligned with Carlos' goal of building a consistent personal brand, and strictly limited to tool use.
+                                - Use a maximum of 10 tool calls, then end the agent execution.
                                 """
 
     

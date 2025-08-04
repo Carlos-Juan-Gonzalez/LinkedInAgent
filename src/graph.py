@@ -59,17 +59,11 @@ class Graph:
         print("topic step")
         topic_agent = get_topic_agent(self.model, self.prompts.TOPIC_PROMPT)
         response = topic_agent.invoke({"messages": [{"role": "user", "content": self.prompts.USER_TOPIC}]})
-        topic = ""
-        position = ""
 
-        try:
-            data = json.loads(response["messages"][-1].content)
-            topic = data["topic"]
-            position = data["position"]
+        topic = response["structured_response"].topic
+        position = response["structured_response"].position
 
-        except json.JSONDecodeError as e:
-            print(f"Error al parsear JSON: {e}")
-
+        print(f"Topic: {topic}\nPosition: {position}\n\n")
         return {"topic": topic, "position": position}
     
     def _research_step(self, state: State):
@@ -77,14 +71,10 @@ class Graph:
         topic = state.topic or "AI"
         research_agent = get_research_agent(self.model, self.prompts.research_prompt(topic))
         response = research_agent.invoke({"messages": [{"role": "user", "content": self.prompts.USER_INITIAL_RESEARCH}]})
-        info = ""
+        info = response["structured_response"].info
 
-        try:
-            data = json.loads(response["messages"][-1].content)
-            info = data["info"]
-        except json.JSONDecodeError as e:
-            print(f"Error al parsear JSON: {e}")
-            
+        
+        print(f"Info: {info}\n\n")
         return {"info": info}
     
     def _redactor_step(self, state: State):
@@ -99,6 +89,7 @@ class Graph:
         response = redactor_agent.invoke({"messages": [{"role": "user", "content": self.prompts.USER_REDACTOR}]})
         post = response["messages"][-1].content
 
+        print(f"Post: {post}\n\n")
         return {"post": post }
     
     def _editor_step(self, state: State):
@@ -110,15 +101,10 @@ class Graph:
         previous_post = state.previous_post if state.previous_post is not None else "No previous_post"
         editor_agent = get_editor_agent(self.model, self.prompts.editor_prompt(previous_post, best, worst))
         response = editor_agent.invoke({"messages": [{"role": "user", "content": self.prompts.user_editor(post)}]})
-        approved = False
-        feedback = ""
-        try:
-            data = json.loads(response["messages"][-1].content)
-            approved = data["approved"]
-            feedback = data["feedback"]
-            
-        except json.JSONDecodeError as e:
-            print(f"Error al parsear JSON: {e}")
+        approved = response["structured_response"].approved
+        feedback = response["structured_response"].feedback
+
+
         
         if approved:
             if state.position == "Final" or state.position == "StandAlone":
@@ -137,8 +123,18 @@ class Graph:
     
     def _final_step(self, state: State):
         print("final step")
-        series_id = get_last_series_id() if state.position != "StandAlone" else None
-        set_posts((get_last_post_id() + 1), state.post, state.topic, series_id)
+
+        print(f"Post: {state.post}\nTopic: {state.topic}\nPosition: {state.position}\n\n")
+
+        respuesta = input('¿Quieres ejecutar el código? (y/n): ').strip().lower()
+
+        if respuesta == 'y':
+            series_id = get_last_series_id() if state.position != "StandAlone" else None
+            set_posts((get_last_post_id() + 1), state.post, state.topic, series_id)
+        elif respuesta == 'n':
+            print("Continuando sin ejecutar el código...")
+        else:
+            print("Opción no válida.")
 
         return {"next": END}
     
