@@ -22,7 +22,7 @@ async def get_impressions():
             await asyncio.sleep(0.1)
 
         posts = (await page.query_selector_all(".break-words.tvm-parent-container"))
-        impressions = (await page.query_selector_all(".ca-entry-point__num-views"))
+        impressions = (await page.query_selector_all(".ca-entry-point__num-views:not(.link)"))
     
         data = []
 
@@ -31,6 +31,7 @@ async def get_impressions():
             impression_text = await imp_el.inner_text()
 
             try:
+
                 num_impressions = int(''.join(filter(str.isdigit, impression_text)))
             except ValueError:
                 print(f"No se pudieron extraer impresiones del post {i}")
@@ -38,7 +39,7 @@ async def get_impressions():
             
       
             data.append({
-                "post": post_content[:15].strip(),
+                "post": post_content[:40].strip(),
                 "impressions": [
                     {
                         "num_impressions": num_impressions,
