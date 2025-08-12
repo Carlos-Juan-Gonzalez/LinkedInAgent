@@ -4,7 +4,7 @@ from tkinter import messagebox
 from src.graph import Graph
 from src.scrapping.posting import create_post
 from src.scrapping.scrapping import get_impressions
-from src.mongoDB import set_posts_impressions
+from src.mongoDB import set_posts_impressions, get_last_series_id, set_posts, get_last_post_id
 
 class App:
     def __init__(self, root):
@@ -12,19 +12,15 @@ class App:
         self.root.title("Control de Impresiones y Post")
         self.root.geometry("600x400")
 
-        # Botón para _set_impressions
         self.btn_set_impressions = tk.Button(root, text="Actualizar impresiones", command=self.run_set_impressions)
         self.btn_set_impressions.pack(pady=5)
 
-        # Botón para correr graph
         self.btn_run_graph = tk.Button(root, text="Correr Graph", command=self.run_graph)
         self.btn_run_graph.pack(pady=5)
 
-        # Text para mostrar y editar final_state.post
         self.text_post = tk.Text(root, width=70, height=10)
         self.text_post.pack(pady=10)
 
-        # Frame para botones aceptar y rechazar
         self.frame_buttons = tk.Frame(root)
         self.frame_buttons.pack(pady=5)
 
@@ -66,10 +62,14 @@ class App:
         self.root.update()
 
         graph = Graph()
-        self.final_state = graph.run()
+        final_state = graph.run()
+
+        self.post = final_state.post
+        self.topic = final_state.topic
+        self.series_id = get_last_series_id() if final_state.position != "StandAlone" else None
 
         self.text_post.delete("1.0", tk.END)
-        self.text_post.insert(tk.END, self.final_state.post)
+        self.text_post.insert(tk.END, self.post)
 
         self.btn_aceptar.config(state=tk.NORMAL)
         self.btn_rechazar.config(state=tk.NORMAL)
@@ -90,8 +90,11 @@ class App:
 
         async def wrapper():
             await create_post(texto)
+            
         
         asyncio.run(wrapper())
+
+        set_posts((get_last_post_id() + 1), texto, self.topic, self.series_id)
 
         messagebox.showinfo("Info", "Post creado correctamente.")
         self.text_post.delete("1.0", tk.END)
@@ -99,7 +102,11 @@ class App:
         self.btn_rechazar.config(state=tk.NORMAL)
 
     def rechazar(self):
-        messagebox.showinfo("Pendiente", "Funcionalidad pendiente de implementación.")
+        self.text_post.delete("1.0", tk.END)
+        messagebox.showinfo("Info", "Post borrado.")
+        self.btn_aceptar.config(state=tk.DISABLED)
+        self.btn_rechazar.config(state=tk.DISABLED)
+        self.root.update()
 
 def main():
     root = tk.Tk()

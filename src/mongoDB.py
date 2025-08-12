@@ -54,20 +54,22 @@ def set_posts(post_id: int, post: str, topic: str, series_id: int | None):
 
 def set_posts_impressions(post, num_impressions, date):
     result = POST_COLLECTION.update_one(
-        {
-            "post": {"$regex": post},
-            "impressions.date": {"$ne": date}  # solo si NO existe esa fecha
-        },
-        {
-            "$push": {
+    {"post": {"$regex": post}, "impressions.date": date},
+    {"$set": {"impressions.$.num_impressions": num_impressions}}
+)
+
+    # Si no existe, inserta
+    if result.modified_count == 0:
+        POST_COLLECTION.update_one(
+            {"post": {"$regex": post}},
+            {"$push": {
                 "impressions": {
                     "num_impressions": num_impressions,
                     "date": date
                 }
-            }
-        },
-        upsert=True
-    )
+            }},
+            upsert=True
+        )
     return result
 
 @tool

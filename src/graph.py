@@ -39,7 +39,6 @@ class Graph:
         graph_builder.add_node("redactor", self._redactor_step)
         graph_builder.add_node("editor", self._editor_step)
         graph_builder.add_node("series", self._series_orchestration_step)
-        graph_builder.add_node("final", self._final_step)
 
         graph_builder.set_entry_point("topic")
         graph_builder.add_edge("topic", "research")
@@ -48,10 +47,9 @@ class Graph:
         graph_builder.add_conditional_edges("editor", editor_next,{
             "redactor": "redactor",
             "series": "series",
-            "final": "final"
+            "final": END
         })
-        graph_builder.add_edge("series","final")
-        graph_builder.add_edge("final", END)
+        graph_builder.add_edge("series", END)
         
         return graph_builder.compile()
     
@@ -105,14 +103,14 @@ class Graph:
         feedback = response["structured_response"].feedback
 
 
-        
+        print(f"Approved: {approved}\nFeedback{feedback}\n\n")
         if approved:
             if state.position == "Final" or state.position == "StandAlone":
                 return {"approved": approved , "next": "series"}
             else:
                 return {"approved": approved , "next": "final"}
         else:
-            return {"approved": approved ,"feedback": feedback, "next": "redactor"}
+            return {"approved": approved ,"feedback": feedback, "previous_post": post, "next": "redactor"}
         
     def _series_orchestration_step(self, state: State):
         print("series step")
@@ -120,23 +118,6 @@ class Graph:
         orchestration_agent.invoke({"messages": [{"role": "user", "content": self.prompts.USER_SERIES}]})
 
         return {"next": "final"}
-    
-    def _final_step(self, state: State):
-        print("final step")
-
-        print(f"Post: {state.post}\nTopic: {state.topic}\nPosition: {state.position}\n\n")
-
-        respuesta = input('¿Quieres ejecutar el código? (y/n): ').strip().lower()
-
-        if respuesta == 'y':
-            series_id = get_last_series_id() if state.position != "StandAlone" else None
-            set_posts((get_last_post_id() + 1), state.post, state.topic, series_id)
-        elif respuesta == 'n':
-            print("Continuando sin ejecutar el código...")
-        else:
-            print("Opción no válida.")
-
-        return {"next": END}
     
     def run(self) -> State:
         initial_state = State()

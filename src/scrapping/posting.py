@@ -6,7 +6,7 @@ load_dotenv()
 
 async def create_post(post: str):
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(storage_state="src\\scrapping\\session.json")
         page = await context.new_page()
         try:
@@ -15,5 +15,4 @@ async def create_post(post: str):
             print("Failed trying to reach the main page")
         await page.locator("#navigation-create-post-Crear-una-publicaci-n").click()
         await page.fill(".ql-editor", post)
-        input("Presiona Enter para continuar (después de revisar el post)...")
         await page.locator('button[id*="ember"]:has-text("Publicar")').click()
