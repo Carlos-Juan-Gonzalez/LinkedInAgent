@@ -58,7 +58,7 @@ def set_posts_impressions(post, num_impressions, date):
     {"$set": {"impressions.$.num_impressions": num_impressions}}
 )
 
-    # Si no existe, inserta
+    
     if result.modified_count == 0:
         POST_COLLECTION.update_one(
             {"post": {"$regex": post}},
