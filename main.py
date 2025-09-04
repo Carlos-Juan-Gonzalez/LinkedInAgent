@@ -1,4 +1,4 @@
-from src.view import runView
+from src.views.main_view import runView
 
 def main():
     runView()

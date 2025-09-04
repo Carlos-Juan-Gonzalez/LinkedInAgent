@@ -54,15 +54,14 @@ def set_posts(post_id: int, post: str, topic: str, series_id: int | None):
 
 def set_posts_impressions(post, num_impressions, date):
     result = POST_COLLECTION.update_one(
-    {"post": {"$regex": post}, "impressions.date": date},
-    {"$set": {"impressions.$.num_impressions": num_impressions}}
-)
+        {"post": {"$regex": post}, "impressions.date": date},
+        {"$set": {"impressions.$.num_impressions": num_impressions}}
+    )
 
-    
     if result.modified_count == 0:
         POST_COLLECTION.update_one(
             {"post": {"$regex": post}},
-            {"$push": {
+            {"$addToSet": {
                 "impressions": {
                     "num_impressions": num_impressions,
                     "date": date

@@ -5,9 +5,9 @@ from src.graph import Graph
 from src.scrapping.posting import create_post
 from src.scrapping.scrapping import get_impressions
 from src.mongoDB import set_posts_impressions, get_last_series_id, set_posts, get_last_post_id
-from src.env_validator import validate_variables
+from src.views.config_view import ConfigView
 
-class View:
+class MainView:
     def __init__(self, root):
         self.root = root
         self.root.title("Control de Impresiones y Post")
@@ -118,63 +118,9 @@ class View:
         self.root.update()
 
     def config(self):
-        self.config_window = tk.Toplevel(self.root)
-        self.config_window.title("Configuration")
-        self.config_window.geometry("400x500")
-        self.config_window.resizable(False, False)
-
-        var_openai = tk.StringVar()
-        var_mongo = tk.StringVar()
-        var_url = tk.StringVar()
-
-
-        self.label_openAI = tk.Label(self.config_window, text="OpenAI API Key:")
-        self.label_openAI.pack(pady=10)
-
-        self.entry_openAi = tk.Entry(self.config_window, textvariable=var_openai, width=50)
-        self.entry_openAi.pack(pady=10)
-
-        self.label_mongo = tk.Label(self.config_window, text="MongoDB Connection String:")
-        self.label_mongo.pack(pady=10)
-
-        self.entry_mongo = tk.Entry(self.config_window, textvariable=var_mongo, width=50)
-        self.entry_mongo.pack(pady=10)
-
-        self.label_url = tk.Label(self.config_window, text="Linkedin Profile URL:")
-        self.label_url.pack(pady=10)
-
-        self.entry_url = tk.Entry(self.config_window, textvariable=var_url, width=50)
-        self.entry_url.pack(pady=10)
-
-        self.btn_set_config = tk.Button(self.config_window, text="OK", command=self.set_config, state=tk.DISABLED)
-        self.btn_set_config.pack(pady=20)
-
-        def check_fields(*args):
-            if var_openai.get() and var_mongo.get() and var_url.get():
-                self.btn_set_config.config(state=tk.NORMAL)
-            else:
-                self.btn_set_config.config(state=tk.DISABLED)
-
-        var_openai.trace_add("write", check_fields)
-        var_mongo.trace_add("write", check_fields)
-        var_url.trace_add("write", check_fields)
-        
-        self.config_window.grab_set()
-        self.config_window.transient(self.root)
-        self.root.wait_window(self.config_window)
-
-    def set_config(self):
-        results = validate_variables(self.entry_openAi.get(),self.entry_mongo.get(),self.entry_url.get())
-        if results["openai"] == True and results["mongo"] == True and results["url"] == True:
-            print("Estan todas correctas")
-        else:
-            if results["openai"] != True:
-                messagebox.showinfo("Openai key error", "The OpenAI API key is not valid or is wrong formatted.")
-            if results["mongo"] != True:
-                messagebox.showinfo("Mongo uri error", "The Mongo uri is not valid or is wrong formatted.")
-            if results["url"] != True:
-                messagebox.showinfo("LinkedIn url error", "The LinkedIn url is not valid or is wrong formatted.")
-
+        def on_config_close():
+            messagebox.showinfo("Info", "Configuration saved successfully.")
+        ConfigView(self.root, on_config_close)
 
     def insertInfo(self,info):
         self.text_post.config(state=tk.NORMAL)
@@ -186,5 +132,5 @@ class View:
 
 def runView():
     root = tk.Tk()
-    view = View(root)
+    view = MainView(root)
     root.mainloop()
