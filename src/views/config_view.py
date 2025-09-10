@@ -70,5 +70,5 @@ class ConfigView:
         with open(".env", "w") as file:
             file.write(f"OPENAI_API_KEY=\"{self.entry_openAi.get()}\"\n")
             file.write(f"MONGODB_URI=\"{self.entry_mongo.get()}\"\n")
-            file.write(f"LINKEDIN_URL=\"{linkedin_url}\"\n")
+            file.write(f"LINKEDIN_MAIN_PAGE=\"{linkedin_url}\"\n")
             file.write(f"LINKEDIN_FEED_PAGE=\"{linkedin_url}recent-activity/all/\"")

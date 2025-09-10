@@ -10,14 +10,17 @@ from src.views.config_view import ConfigView
 class MainView:
     def __init__(self, root):
         self.root = root
-        self.root.title("Control de Impresiones y Post")
+        self.root.title("Post creation")
         self.root.geometry("750x600")
 
-        self.btn_set_impressions = tk.Button(root, text="Actualizar impresiones", command=self.run_set_impressions)
+        self.btn_set_impressions = tk.Button(root, text="Update Impressions", command=self.run_set_impressions)
         self.btn_set_impressions.pack(pady=5)
 
-        self.btn_run_graph = tk.Button(root, text="Correr Graph", command=self.run_graph)
+        self.btn_run_graph = tk.Button(root, text="Create post", command=self.run_graph)
         self.btn_run_graph.pack(pady=5)
+
+        self.btn_see_posts = tk.Button(root, text="Post data base", command=self.see_posts)
+        self.btn_see_posts.pack(pady=5)
 
         self.text_post = tk.Text(root, width=70, height=25)
         self.text_post.config(state=tk.DISABLED)
@@ -26,16 +29,16 @@ class MainView:
         self.frame_buttons = tk.Frame(root)
         self.frame_buttons.pack(pady=5)
 
-        self.btn_aceptar = tk.Button(self.frame_buttons, text="Aceptar", command=self.aceptar, state=tk.DISABLED)
-        self.btn_aceptar.grid(row=0, column=0, padx=10)
+        self.btn_confirm = tk.Button(self.frame_buttons, text="Confirm", command=self.confirm, state=tk.DISABLED)
+        self.btn_confirm.grid(row=0, column=0, padx=10)
 
-        self.btn_rechazar = tk.Button(self.frame_buttons, text="Rechazar", command=self.rechazar, state=tk.DISABLED)
-        self.btn_rechazar.grid(row=0, column=1, padx=10)
+        self.btn_Cancel = tk.Button(self.frame_buttons, text="Cancel", command=self.Cancel, state=tk.DISABLED)
+        self.btn_Cancel.grid(row=0, column=1, padx=10)
 
         self.frame_config = tk.Frame(root)
         self.frame_config.pack(side="right",anchor="s")
 
-        self.btn_config = tk.Button(self.frame_config, text="config", command=self.config)
+        self.btn_config = tk.Button(self.frame_config, text="Config", command=self.config)
         self.btn_config.pack(padx=10,pady=10)
 
         self.final_state = None
@@ -43,7 +46,7 @@ class MainView:
     def run_set_impressions(self):
         self.btn_set_impressions.config(state=tk.DISABLED)
         self.btn_run_graph.config(state=tk.DISABLED)
-        self.insertInfo("Actualizando impresiones, por favor espera...")
+        self.insertInfo("Updating impressions, please wait...")
         self.root.update()
 
         async def wrapper():
@@ -56,7 +59,7 @@ class MainView:
         
         asyncio.run(wrapper())
 
-        messagebox.showinfo("Info", "Impresiones actualizadas correctamente.")
+        messagebox.showinfo("Info", "Impressions updated successfully.")
         self.insertInfo("")
         self.btn_set_impressions.config(state=tk.NORMAL)
         self.btn_run_graph.config(state=tk.NORMAL)
@@ -65,13 +68,13 @@ class MainView:
         self.btn_set_impressions.config(state=tk.DISABLED)
         self.btn_run_graph.config(state=tk.DISABLED)
         self.insertInfo("")
-        self.insertInfo("Ejecutando graph, por favor espera...")
+        self.insertInfo("Creating post, please wait...")
         self.root.update()
 
         graph = Graph()
         final_state = graph.run()
 
-        self.post = final_state.post
+        self.post = final_state.post.replace("*","")
         self.topic = final_state.topic
         self.series_id = get_last_series_id() if final_state.position != "StandAlone" else None
 
@@ -79,21 +82,24 @@ class MainView:
         self.text_post.config(state=tk.NORMAL)
         self.text_post.insert(tk.END, self.post)
 
-        self.btn_aceptar.config(state=tk.NORMAL)
-        self.btn_rechazar.config(state=tk.NORMAL)
+        self.btn_confirm.config(state=tk.NORMAL)
+        self.btn_Cancel.config(state=tk.NORMAL)
         self.btn_set_impressions.config(state=tk.NORMAL)
         self.btn_run_graph.config(state=tk.NORMAL)
 
-    def aceptar(self):
+    def see_posts(self):
+        print("yo hago caca")
+
+    def confirm(self):
         texto = self.text_post.get("1.0", tk.END).strip()
         if not texto:
-            messagebox.showwarning("Aviso", "El texto del post está vacío.")
+            messagebox.showwarning("Warning", "Post text is empty.")
             return
         
-        self.btn_aceptar.config(state=tk.DISABLED)
-        self.btn_rechazar.config(state=tk.DISABLED)
+        self.btn_confirm.config(state=tk.DISABLED)
+        self.btn_Cancel.config(state=tk.DISABLED)
         self.insertInfo("")
-        self.insertInfo("Creando post, por favor espera...")
+        self.insertInfo("Creating post, please wait...")
         self.root.update()
 
         async def wrapper():
@@ -104,16 +110,16 @@ class MainView:
 
         set_posts((get_last_post_id() + 1), texto, self.topic, self.series_id)
 
-        messagebox.showinfo("Info", "Post creado correctamente.")
+        messagebox.showinfo("Info", "Post created successfully.")
         self.insertInfo("")
-        self.btn_aceptar.config(state=tk.NORMAL)
-        self.btn_rechazar.config(state=tk.NORMAL)
+        self.btn_confirm.config(state=tk.NORMAL)
+        self.btn_Cancel.config(state=tk.NORMAL)
 
-    def rechazar(self):
+    def Cancel(self):
         self.insertInfo("")
-        messagebox.showinfo("Info", "Post borrado.")
-        self.btn_aceptar.config(state=tk.DISABLED)
-        self.btn_rechazar.config(state=tk.DISABLED)
+        messagebox.showinfo("Info", "Post deleted.")
+        self.btn_confirm.config(state=tk.DISABLED)
+        self.btn_Cancel.config(state=tk.DISABLED)
         self.text_post.config(tk.DISABLED)
         self.root.update()
 
